@@ -22,11 +22,63 @@
     <a href="#" class="logout">Logout</a>
 
     <ul>
-        <!-- {{#each user}} -->
         <li>Name: {{user.profile.fullName}}</li>
         <li>Email: {{user.emails.[0].address}}</li>
-        <!-- {{/each}} -->
     </ul>
+
+    {{> addFriends}}
+
+    {{> chatWindow}}
+</template>
+
+<template name="addFriends">
+    {{#if friendsToAdd}}
+        <h2>Here are some friends to add:</h2>
+        <ul>
+            {{#each friendsToAdd}}
+                <li>
+                    <label>
+                        <input type="checkbox" class="addFriendCheckbox">
+                        {{profile.fullName}}
+                    </label>
+                </li>
+            {{/each}}
+        </ul>
+    {{/if}}
+</template>
+
+<template name="chatWindow">
+    <div class="friendsList">
+        {{#if friends}}
+            <h2>Here are your friends: </h2>
+            <ul>
+                {{#each friends}}
+                    <li>
+                        <a href="#" class="friend">{{profile.fullName}}</a>
+                        <a href="#" class="removeFriend">[-]</a>
+                    </li> 
+                {{/each}} 
+            </ul>
+        {{/if}}
+    </div>
+    <div class="chatHeader">
+        <h2>Bob</h2>
+    </div>
+    <div class="chatMessages">
+        <ul>
+            <li>
+                <h5>Bob said:</h5>
+                <p>Hey there!</p>
+            </li>
+            <li>
+                <h5>You said:</h5>
+                <p>Hey Bob!</p>
+            </li>
+        </ul>
+    </div>
+    <div class="chatBottom">
+        <input type="text" placeholder="Type a message:" name="message">
+    </div>
 </template>
 
 <template name="notLoggedIn">
