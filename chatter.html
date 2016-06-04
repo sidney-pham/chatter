@@ -1,0 +1,110 @@
+<head>
+    <title>Chatter</title>
+</head>
+
+<template name="main">
+    {{> yield}}
+    <hr>
+    <p>Sidney Pham</p>
+</template>
+
+<template name="home">
+    {{#if currentUser}}
+        {{> app}}    
+    {{else}}
+        {{> notLoggedIn}}
+    {{/if}}
+
+</template>
+
+<template name="app">
+    <h1>LOGGED IN YO!</h1>
+    <a href="#" class="logout">Logout</a>
+
+    <ul>
+        <!-- {{#each user}} -->
+        <li>Name: {{user.profile.fullName}}</li>
+        <li>Email: {{user.emails.[0].address}}</li>
+        <!-- {{/each}} -->
+    </ul>
+</template>
+
+<template name="notLoggedIn">
+    <h1>Chatter!</h1>
+    <p>Chat with all your friends!</p>
+
+    {{#if showRegister}}
+        {{> register}}
+    {{else}} 
+        {{#if showLogin}}
+            {{> login}}
+        {{else}}
+                <button class="register">Register</button>
+                <button class="login">Login</button>
+        {{/if}}
+    {{/if}} 
+</template>
+
+<template name="register">
+    <h2>Register</h2>
+
+    <form class="register">
+            <ul>
+                <li>
+                    <label>
+                        First Name: 
+                        <input type="text" name="firstName" required>
+                    </label>
+                </li>
+                <li>
+                    <label>
+                        Last Name: 
+                        <input type="text" name="lastName" required>
+                    </label>
+                </li>
+                <li>
+                    <label>
+                        Email: 
+                        <input type="email" name="email" required>
+                    </label>
+                </li>
+                <li>
+                    <label>
+                        Password: 
+                        <input type="password" name="password" required>
+                    </label>
+                </li>
+                <li>
+                    <input type="submit" value="Register">
+                </li>
+            </ul>   
+        </form>
+
+    <button class="back">Back</button>
+</template>
+
+<template name="login">
+    <h2>Login</h2>
+
+    <form class="login">
+            <ul>
+                <li>
+                    <label>
+                        Email: 
+                        <input type="email" name="email" required>
+                    </label>
+                </li>
+                <li>
+                    <label>
+                        Password: 
+                        <input type="password" name="password" required>
+                    </label>
+                </li>
+                <li>
+                    <input type="submit" value="Login">
+                </li>
+            </ul>   
+        </form>
+
+    <button class="back">Back</button>
+</template>
