@@ -1,4 +1,8 @@
-Chats = new Mongo.Collection("chats");
+const BOT_ID = "BOT";
+const BOT_NAME = "Chatter";
+
+
+Chats = new Mongo.Collection("Chats");
 
 Router.configure({
     layoutTemplate: "main"
@@ -14,6 +18,10 @@ Router.route("/login");
 
 if (Meteor.isClient) {
     Session.set("selectedButton", "none");
+
+    // Probably should move this line somewhere else so that when the user
+    // refreshes the page, who they're talking to is remembered.
+    Session.set("chattingWith", "none");
 
     $.validator.setDefaults({
         rules: {
@@ -157,6 +165,7 @@ if (Meteor.isClient) {
         "click .logout": function(event) {
             event.preventDefault();
             Meteor.logout();
+            Session.set("chattingWith", "none");
             Session.set("selectedButton", "none");
         }
     });
@@ -213,6 +222,102 @@ if (Meteor.isClient) {
             });
 
             return friends;
+        }, "friendSelected": function() {
+            var chattingWith = Session.get("chattingWith");
+
+            return chattingWith != "none";
+        }, "selected": function() {
+            var friendId = this._id;
+            var chattingWith = Session.get("chattingWith");
+
+            if (friendId == Session.get("chattingWith")) {
+                return "selected";
+            }
+        }, "chattingWith": function() {
+            var chattingWith = Session.get("chattingWith");
+
+            if (chattingWith == "none") {
+                return "Select a friend to chat to!";
+            } else {
+                var playerChattingWith;
+                var allUsers = Meteor.users.find().fetch();
+                var currentUser = Meteor.userId();
+
+                allUsers.forEach(function(user) {
+                    var otherPlayerId = user._id;
+
+                    if (otherPlayerId == chattingWith) {
+                        playerChattingWith = user;
+                    }
+                });
+
+                return playerChattingWith;
+            }
+        }, "messages": function() {
+            var currentUser = Meteor.userId();
+            var chattingWith = Session.get("chattingWith");
+            var users = [currentUser, chattingWith].sort();
+
+            var chatExists = Chats.findOne({users: users});
+
+            if (chatExists) {
+                var messages = Chats.findOne({users: users}).messages;
+                console.log(messages);
+                return messages;
+            } else {
+                var chattingWithName = Meteor.users.findOne(chattingWith).profile.firstName;
+                var greeting = "Say hello to " + chattingWithName + "!";
+                var message = {
+                    text: greeting,
+                    from: BOT_ID,
+                    sentAt: new Date()
+                };
+
+                console.log(message);
+                return [message];
+            }
+        }, "fromWhom": function(from) {
+            var currentUser = Meteor.userId();
+
+            if (from == currentUser) {
+                return "You"
+            } else {
+                var friendsName;
+
+                // If the message is from bot!
+                if (from == BOT_ID) {
+                    friendsName = BOT_NAME;
+                } else {
+                    friendsName = Meteor.users.findOne(from).profile.firstName;   
+                }
+                return friendsName;
+            }
+        }, "formatTime": function(date) {
+            // Code from http://stackoverflow.com/questions/25275696/javascript-format-date-time 
+            // to format time
+
+            var hours = date.getHours();
+            var minutes = date.getMinutes();
+            var ampm = hours >= 12 ? 'pm' : 'am';
+            hours = hours % 12;
+            hours = hours ? hours : 12; // the hour '0' should be '12'
+            minutes = minutes < 10 ? '0'+minutes : minutes;
+            var formattedTime = hours + ':' + minutes + ' ' + ampm;
+
+
+            // Format date
+            var monthNames = [
+              "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul",
+              "Aug", "Sep", "Oct", "Nov", "Dec"
+            ];
+
+            var day = date.getDate();
+            var monthIndex = date.getMonth();
+            var year = date.getFullYear();
+
+            var formattedDate = day + ' ' + monthNames[monthIndex] + ' ' + year;
+
+            return formattedTime + " on " + formattedDate;
         }
     });
 
@@ -223,6 +328,46 @@ if (Meteor.isClient) {
             var friendId = this._id;
 
             Meteor.call("removeFriend", currentUser, friendId);
+        }, "click .friendsList .friend": function(event) {
+            event.preventDefault();
+            var friendId = this._id;
+
+            Session.set("chattingWith", friendId);
+        }, "keyup .chatBottom input[name='message']": function(event) {
+            if(event.which == 13){
+                var currentUser = Meteor.userId();
+                var chattingWith = Session.get("chattingWith");
+                var text = $(event.target).val();
+                var users = [currentUser, chattingWith].sort();
+                var message = {
+                    text: text,
+                    from: currentUser,
+                    sentAt: new Date()
+                };
+
+                var chatExists = Chats.findOne({users: users});
+                
+                if (chatExists) {
+                    var newMessages = Chats.findOne({users: users}).messages;
+                    console.log(newMessages);
+                    newMessages.push(message);
+
+                    // I DON'T THINK SORTING BY sentAt is necessary, since
+                    // we're pushing onto the end of the messages array
+
+                    Meteor.call("updateChat", users, newMessages);
+
+                    console.log(Chats.find({users: users}).fetch());
+                } else {
+                    var messages = [message];
+
+                    Meteor.call("addChat", users, messages);
+
+                    console.log(Chats.find({users: users}).fetch());
+                }
+
+                $(event.target).val("");
+            }            
         }
     });
 }
@@ -257,5 +402,16 @@ Meteor.methods({
         friendProfile.friends.splice(indexToRemove, 1); 
 
         Meteor.users.update({_id: friendId}, {$set: {profile: friendProfile}});
+    }, "addChat": function(between, messages) {
+        Chats.insert({
+            users: between,
+            messages: messages
+        });
+    }, "updateChat": function(between, newMessages) {
+        Chats.update({users: between}, {
+            $set: {
+                messages: newMessages
+            }
+        });
     }
 });

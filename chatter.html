@@ -54,31 +54,48 @@
             <ul>
                 {{#each friends}}
                     <li>
-                        <a href="#" class="friend">{{profile.fullName}}</a>
+                        <a href="#" class="friend {{selected}}">{{profile.fullName}}</a>
                         <a href="#" class="removeFriend">[-]</a>
                     </li> 
                 {{/each}} 
             </ul>
         {{/if}}
     </div>
-    <div class="chatHeader">
-        <h2>Bob</h2>
-    </div>
-    <div class="chatMessages">
-        <ul>
-            <li>
-                <h5>Bob said:</h5>
-                <p>Hey there!</p>
-            </li>
-            <li>
-                <h5>You said:</h5>
-                <p>Hey Bob!</p>
-            </li>
-        </ul>
-    </div>
-    <div class="chatBottom">
-        <input type="text" placeholder="Type a message:" name="message">
-    </div>
+    {{#if friends}}
+        {{#if friendSelected}}
+            <div class="chatHeader">
+                <h2>{{chattingWith.profile.fullName}}</h2>
+            </div>
+            <div class="chatMessages">
+                <ul>
+                    {{#each messages}}  
+                        <li>
+                            <h5>{{fromWhom from}} said:</h5>
+                            <h6 class="sentAt">at {{formatTime sentAt}}</h6>
+                            <p>{{text}}</p>
+                        </li>
+                    {{/each}}
+                </ul>
+            </div>
+            <div class="chatBottom">
+                <input type="text" placeholder="Type a message:" name="message">
+            </div>
+        {{else}}
+            <div class="chatHeader">
+                <h2>Select a friend to chat with!</h2>
+            </div>
+            <div class="chatMessages">
+                <h4>To start chatting, select a friend!</h4>
+            </div>
+        {{/if}}
+    {{else}}
+        <div class="chatHeader">
+            <h2>You need to add some friends first!</h2>
+        </div>
+        <div class="chatMessages">
+            <h4>To start chatting, add a friend!</h4>
+        </div>
+    {{/if}}
 </template>
 
 <template name="notLoggedIn">
