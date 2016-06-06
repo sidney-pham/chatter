@@ -220,11 +220,11 @@ if (Meteor.isClient) {
             });
 
             return friends;
-        }, "usersExist": function() {
+        }, "otherUsersExist": function() {
             var allUsers = Meteor.users.find();
-            var oneOrMoreUsers = allUsers.length > 0;
+            var otherUsers = allUsers.length > 1;
 
-            return oneOrMoreUsers;
+            return otherUsers;
         }, "friendSelected": function() {
             var chattingWith = Session.get("chattingWith");
 
