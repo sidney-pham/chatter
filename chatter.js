@@ -14,8 +14,6 @@ Router.route("/", {
 Router.route("/register");
 Router.route("/login");
 
-
-
 if (Meteor.isClient) {
     Session.set("selectedButton", "none");
 
@@ -222,6 +220,11 @@ if (Meteor.isClient) {
             });
 
             return friends;
+        }, "usersExist": function() {
+            var allUsers = Meteor.users.find();
+            var oneOrMoreUsers = allUsers.length > 0;
+
+            return oneOrMoreUsers;
         }, "friendSelected": function() {
             var chattingWith = Session.get("chattingWith");
 

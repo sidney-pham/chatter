@@ -89,12 +89,21 @@
             </div>
         {{/if}}
     {{else}}
-        <div class="chatHeader">
-            <h2>You need to add some friends first!</h2>
-        </div>
-        <div class="chatMessages">
-            <h4>To start chatting, add a friend!</h4>
-        </div>
+        {{#if usersExist}}
+            <div class="chatHeader">
+                <h2>You need to add some friends first!</h2>
+            </div>
+            <div class="chatMessages">
+                <h4>To start chatting, add a friend!</h4>
+            </div>
+        {{else}}
+            <div class="chatHeader">
+                <h2>No users exist!</h2>
+            </div>
+            <div class="chatMessages">
+                <h4>Tell a friend about Chatter to chat with them!</h4>
+            </div>
+        {{/if}}
     {{/if}}
 </template>
 
