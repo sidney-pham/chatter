@@ -1,7 +1,6 @@
 const BOT_ID = "BOT";
 const BOT_NAME = "Chatter";
 
-
 Chats = new Mongo.Collection("Chats");
 
 Router.configure({
@@ -11,8 +10,6 @@ Router.configure({
 Router.route("/", {
     template: "home"
 });
-Router.route("/register");
-Router.route("/login");
 
 if (Meteor.isClient) {
     Session.set("selectedButton", "none");
@@ -65,7 +62,9 @@ if (Meteor.isClient) {
     });
 
     Template.notLoggedIn.helpers({
-        "showRegister": function() {
+        "socialLoginConfigured": function() {
+            return Accounts.loginServicesConfigured();
+        }, "showRegister": function() {
             return Session.get("selectedButton") == "register";
         }, "showLogin": function() {
             return Session.get("selectedButton") == "login";
@@ -80,77 +79,93 @@ if (Meteor.isClient) {
         }
     });
 
-    Template.register.events({
-       "click .back": function() {
-            Session.set("selectedButton", "none");
-       }, "submit form.register": function(event) {
-            event.preventDefault();
-       }
-    });
-
-    Template.register.onRendered(function() {
-        var validator = $('.register').validate({
-            submitHandler: function() {
-                var firstName = $('[name=firstName]').val();
-                var lastName = $('[name=lastName]').val();
-                var email = $('[name=email]').val();
-                var password = $('[name=password]').val();
-
-                var userProfile = {
-                    firstName: firstName,
-                    lastName: lastName,
-                    fullName: firstName + " " + lastName,
-                    friends: []
+    Template.facebookLogin.events({
+        "click .fbLogin": function(event) {
+            console.log("login");
+            Meteor.loginWithFacebook({}, function(error) {
+                if (error) {
+                    console.log("Error logging in!");
+                    console.log(error);
+                } else {
+                    console.log("logged in successfully!");
                 }
+            });
 
-                Accounts.createUser({
-                    profile: userProfile,
-                    email: email,
-                    password: password
-                }, function(error) {
-                    if (error) {
-                        if(error.reason == "Email already exists."){
-                            validator.showErrors({
-                                email: "That email already belongs to a registered user."   
-                            });
-                        }
-                    }
-                });
-            }
-        });
+
+        }
     });
 
-    Template.login.events({
-       "click .back": function() {
-            Session.set("selectedButton", "none");
-       }, "submit form.login": function(event) {
-            event.preventDefault();
-       }
-    });
+    // Template.register.events({
+    //    "click .back": function() {
+    //         Session.set("selectedButton", "none");
+    //    }, "submit form.register": function(event) {
+    //         event.preventDefault();
+    //    }
+    // });
 
-    Template.login.onRendered(function() {
-        var validator = $("form.login").validate({
-            submitHandler: function(event) {
-                var email = $('[name=email]').val();
-                var password = $('[name=password]').val();
+    // Template.register.onRendered(function() {
+    //     var validator = $('.register').validate({
+    //         submitHandler: function() {
+    //             var firstName = $('[name=firstName]').val();
+    //             var lastName = $('[name=lastName]').val();
+    //             var email = $('[name=email]').val();
+    //             var password = $('[name=password]').val();
 
-                Meteor.loginWithPassword(email, password, function(error){
-                    if(error){
-                        if(error.reason == "User not found"){
-                            validator.showErrors({
-                                email: "That email doesn't belong to a registered user."   
-                            });
-                        }
-                        if(error.reason == "Incorrect password"){
-                            validator.showErrors({
-                                password: "You entered an incorrect password."    
-                            });
-                        }
-                    }
-                });
-            }
-        });
-    });
+    //             var userProfile = {
+    //                 firstName: firstName,
+    //                 lastName: lastName,
+    //                 fullName: firstName + " " + lastName,
+    //                 friends: []
+    //             };
+
+    //             Accounts.createUser({
+    //                 profile: userProfile,
+    //                 email: email,
+    //                 password: password
+    //             }, function(error) {
+    //                 if (error) {
+    //                     if(error.reason == "Email already exists."){
+    //                         validator.showErrors({
+    //                             email: "That email already belongs to a registered user."   
+    //                         });
+    //                     }
+    //                 }
+    //             });
+    //         }
+    //     });
+    // });
+
+    // Template.login.events({
+    //    "click .back": function() {
+    //         Session.set("selectedButton", "none");
+    //    }, "submit form.login": function(event) {
+    //         event.preventDefault();
+    //    }
+    // });
+
+    // Template.login.onRendered(function() {
+    //     var validator = $("form.login").validate({
+    //         submitHandler: function(event) {
+    //             var email = $('[name=email]').val();
+    //             var password = $('[name=password]').val();
+
+    //             Meteor.loginWithPassword(email, password, function(error){
+    //                 if(error){
+    //                     if(error.reason == "User not found"){
+    //                         validator.showErrors({
+    //                             email: "That email doesn't belong to a registered user."   
+    //                         });
+    //                     }
+    //                     if(error.reason == "Incorrect password"){
+    //                         validator.showErrors({
+    //                             password: "You entered an incorrect password."    
+    //                         });
+    //                     }
+    //                 }
+    //             });
+    //         }
+    //     });
+    // });
 
     Template.app.helpers({
         "user": function() {
@@ -377,6 +392,34 @@ if (Meteor.isClient) {
 
 if (Meteor.isServer) {
     console.log("CHATTER IS RUNNING!");
+
+    ServiceConfiguration.configurations.remove({
+        service: 'facebook'
+    });
+     
+    ServiceConfiguration.configurations.insert({
+        service: 'facebook',
+        appId: '240711099642226',
+        secret: '925d26e66a5289345132df1a14d97dcc'
+    });
+
+    Accounts.onCreateUser(function(options, user) {
+        console.log("New user!");
+        user.profile = {
+            friends: []
+        };
+
+        if (options.profile) {
+            // Cool way to extend an object
+            // Reference:
+            // https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Object/assign
+            user.profile = Object.assign(user.profile, options.profile);
+        }
+
+        console.log(user);
+
+        return user;
+    });
 }
 
 Meteor.methods({

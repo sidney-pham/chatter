@@ -22,13 +22,13 @@
     <a href="#" class="logout">Logout</a>
 
     <ul>
-        <li>Name: {{user.profile.fullName}}</li>
-        <li>Email: {{user.emails.[0].address}}</li>
+        <li>Name: {{user.services.facebook.name}}</li>
+        <li>Email: {{user.services.facebook.email}}</li>
     </ul>
 
-    {{> addFriends}}
+<!--     {{> addFriends}}
 
-    {{> chatWindow}}
+    {{> chatWindow}} -->
 </template>
 
 <template name="addFriends">
@@ -110,8 +110,14 @@
 <template name="notLoggedIn">
     <h1>Chatter!</h1>
     <p>Chat with all your friends!</p>
-
-    {{#if showRegister}}
+    
+    {{#if socialLoginConfigured}}
+        {{> facebookLogin}}
+    {{else}}
+        <p>Social login not configured yet.</p>
+    {{/if}}
+    
+<!--     {{#if showRegister}}
         {{> register}}
     {{else}} 
         {{#if showLogin}}
@@ -120,7 +126,11 @@
                 <button class="register">Register</button>
                 <button class="login">Login</button>
         {{/if}}
-    {{/if}} 
+    {{/if}}  -->
+</template>
+
+<template name="facebookLogin">
+    <button class="fbLogin">Log in with Facebook!</button>
 </template>
 
 <template name="register">

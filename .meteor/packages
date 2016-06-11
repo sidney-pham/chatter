@@ -24,3 +24,5 @@ session
 accounts-password
 accounts-ui
 themeteorchef:jquery-validation
+accounts-facebook
+service-configuration
