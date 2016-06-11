@@ -12,160 +12,26 @@ Router.route("/", {
 });
 
 if (Meteor.isClient) {
-    Session.set("selectedButton", "none");
-
     // Probably should move this line somewhere else so that when the user
     // refreshes the page, who they're talking to is remembered.
     Session.set("chattingWith", "none");
 
-    $.validator.setDefaults({
-        rules: {
-            firstName: {
-                required: true,
-                minlength: 2,
-                maxlength: 30
-            },
-            lastName: {
-                required: true,
-                minlength: 2,
-                maxlength: 30
-            },
-            email: {
-                required: true,
-                email: true
-            },
-            password: {
-                required: true,
-                minlength: 6
-            }
-        },
-        messages: {
-            firstName: {
-                required: "You must enter a first name.",
-                minlength: "Your first name must be at least {0} characters.",
-                maxlength: "Your first name must be at most {0} characters."
-            },
-            lastName: {
-                required: "You must enter a last name.",
-                minlength: "Your last name must be at least {0} characters.",
-                maxlength: "Your last name must be at most {0} characters."
-            },
-            email: {
-                required: "You must enter an email address.",
-                email: "You've entered an invalid email address."
-            },
-            password: {
-                required: "You must enter a password.",
-                minlength: "Your password must be at least {0} characters."
-            }
-        }
-    });
-
     Template.notLoggedIn.helpers({
         "socialLoginConfigured": function() {
             return Accounts.loginServicesConfigured();
-        }, "showRegister": function() {
-            return Session.get("selectedButton") == "register";
-        }, "showLogin": function() {
-            return Session.get("selectedButton") == "login";
-        }
-    });
-
-    Template.home.events({
-        "click .register": function() {
-            Session.set("selectedButton", "register");
-        }, "click .login": function() {
-            Session.set("selectedButton", "login");
         }
     });
 
     Template.facebookLogin.events({
         "click .fbLogin": function(event) {
-            console.log("login");
             Meteor.loginWithFacebook({}, function(error) {
                 if (error) {
                     console.log("Error logging in!");
                     console.log(error);
-                } else {
-                    console.log("logged in successfully!");
                 }
             });
-
-
         }
     });
-
-    // Template.register.events({
-    //    "click .back": function() {
-    //         Session.set("selectedButton", "none");
-    //    }, "submit form.register": function(event) {
-    //         event.preventDefault();
-    //    }
-    // });
-
-    // Template.register.onRendered(function() {
-    //     var validator = $('.register').validate({
-    //         submitHandler: function() {
-    //             var firstName = $('[name=firstName]').val();
-    //             var lastName = $('[name=lastName]').val();
-    //             var email = $('[name=email]').val();
-    //             var password = $('[name=password]').val();
-
-    //             var userProfile = {
-    //                 firstName: firstName,
-    //                 lastName: lastName,
-    //                 fullName: firstName + " " + lastName,
-    //                 friends: []
-    //             };
-
-    //             Accounts.createUser({
-    //                 profile: userProfile,
-    //                 email: email,
-    //                 password: password
-    //             }, function(error) {
-    //                 if (error) {
-    //                     if(error.reason == "Email already exists."){
-    //                         validator.showErrors({
-    //                             email: "That email already belongs to a registered user."   
-    //                         });
-    //                     }
-    //                 }
-    //             });
-    //         }
-    //     });
-    // });
-
-    // Template.login.events({
-    //    "click .back": function() {
-    //         Session.set("selectedButton", "none");
-    //    }, "submit form.login": function(event) {
-    //         event.preventDefault();
-    //    }
-    // });
-
-    // Template.login.onRendered(function() {
-    //     var validator = $("form.login").validate({
-    //         submitHandler: function(event) {
-    //             var email = $('[name=email]').val();
-    //             var password = $('[name=password]').val();
-
-    //             Meteor.loginWithPassword(email, password, function(error){
-    //                 if(error){
-    //                     if(error.reason == "User not found"){
-    //                         validator.showErrors({
-    //                             email: "That email doesn't belong to a registered user."   
-    //                         });
-    //                     }
-    //                     if(error.reason == "Incorrect password"){
-    //                         validator.showErrors({
-    //                             password: "You entered an incorrect password."    
-    //                         });
-    //                     }
-    //                 }
-    //             });
-    //         }
-    //     });
-    // });
 
     Template.app.helpers({
         "user": function() {
@@ -179,7 +45,6 @@ if (Meteor.isClient) {
             event.preventDefault();
             Meteor.logout();
             Session.set("chattingWith", "none");
-            Session.set("selectedButton", "none");
         }
     });
 
@@ -236,7 +101,7 @@ if (Meteor.isClient) {
 
             return friends;
         }, "otherUsersExist": function() {
-            var allUsers = Meteor.users.find();
+            var allUsers = Meteor.users.find().fetch();
             var otherUsers = allUsers.length > 1;
 
             return otherUsers;
@@ -280,7 +145,7 @@ if (Meteor.isClient) {
 
             if (chatExists) {
                 var messages = Chats.findOne({users: users}).messages;
-                console.log(messages);
+
                 return messages;
             } else {
                 var chattingWithName = Meteor.users.findOne(chattingWith).profile.firstName;
@@ -291,14 +156,13 @@ if (Meteor.isClient) {
                     sentAt: new Date()
                 };
 
-                console.log(message);
                 return [message];
             }
         }, "fromWhom": function(from) {
             var currentUser = Meteor.userId();
 
             if (from == currentUser) {
-                return "You"
+                return "You";
             } else {
                 var friendsName;
 
@@ -366,22 +230,12 @@ if (Meteor.isClient) {
                 var chatExists = Chats.findOne({users: users});
                 
                 if (chatExists) {
-                    var newMessages = Chats.findOne({users: users}).messages;
-                    console.log(newMessages);
-                    newMessages.push(message);
-
                     // I DON'T THINK SORTING BY sentAt is necessary, since
                     // we're pushing onto the end of the messages array
 
-                    Meteor.call("updateChat", users, newMessages);
-
-                    console.log(Chats.find({users: users}).fetch());
+                    Meteor.call("addMessage", users, message);
                 } else {
-                    var messages = [message];
-
-                    Meteor.call("addChat", users, messages);
-
-                    console.log(Chats.find({users: users}).fetch());
+                    Meteor.call("createChatWithFirstMessage", users, message);
                 }
 
                 $(event.target).val("");
@@ -409,11 +263,29 @@ if (Meteor.isServer) {
             friends: []
         };
 
+        // idk where options comes from, but this is what the example in 
+        // https://docs.meteor.com/api/accounts-multi.html#AccountsServer-onCreateUser
+        // did, so i'm going to check if options.profile exists
         if (options.profile) {
             // Cool way to extend an object
             // Reference:
             // https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Object/assign
             user.profile = Object.assign(user.profile, options.profile);
+        }
+
+        // should find a better way to get first and last names than splitting full name.
+        if (user.profile.name) {
+            // because javascript is dumb
+            Array.prototype.last = function() {
+                return this[this.length-1];
+            }
+
+            var fullName = user.profile.name;
+            var firstName = fullName.split(" ")[0];
+            var lastName = fullName.split(" ").last();
+
+            user.profile.firstName = firstName;
+            user.profile.lastName = lastName;
         }
 
         console.log(user);
@@ -448,12 +320,16 @@ Meteor.methods({
         friendProfile.friends.splice(indexToRemove, 1); 
 
         Meteor.users.update({_id: friendId}, {$set: {profile: friendProfile}});
-    }, "addChat": function(between, messages) {
+    }, "createChatWithFirstMessage": function(between, message) {
+        var messages = [message];
         Chats.insert({
             users: between,
             messages: messages
         });
-    }, "updateChat": function(between, newMessages) {
+    }, "addMessage": function(between, newMessage) {
+        var newMessages = Chats.findOne({users: between}).messages;
+        newMessages.push(message);
+
         Chats.update({users: between}, {
             $set: {
                 messages: newMessages

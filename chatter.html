@@ -22,13 +22,14 @@
     <a href="#" class="logout">Logout</a>
 
     <ul>
-        <li>Name: {{user.services.facebook.name}}</li>
+        <li>Name: {{user.profile.name}}</li> <!-- This is relies on profile property existing -->
         <li>Email: {{user.services.facebook.email}}</li>
+        <li>Gender: {{user.services.facebook.gender}}</li>
     </ul>
 
-<!--     {{> addFriends}}
+    {{> addFriends}}
 
-    {{> chatWindow}} -->
+    {{> chatWindow}}
 </template>
 
 <template name="addFriends">
@@ -39,7 +40,7 @@
                 <li>
                     <label>
                         <input type="checkbox" class="addFriendCheckbox">
-                        {{profile.fullName}}
+                        {{profile.name}}
                     </label>
                 </li>
             {{/each}}
@@ -47,6 +48,7 @@
     {{/if}}
 </template>
 
+<!-- Should break this down into sub-templates -->
 <template name="chatWindow">
     <div class="friendsList">
         {{#if friends}}
@@ -54,7 +56,7 @@
             <ul>
                 {{#each friends}}
                     <li>
-                        <a href="#" class="friend {{selected}}">{{profile.fullName}}</a>
+                        <a href="#" class="friend {{selected}}">{{profile.name}}</a>
                         <a href="#" class="removeFriend">[-]</a>
                     </li> 
                 {{/each}} 
@@ -64,7 +66,7 @@
     {{#if friends}}
         {{#if friendSelected}}
             <div class="chatHeader">
-                <h2>{{chattingWith.profile.fullName}}</h2>
+                <h2>{{chattingWith.profile.name}}</h2>
             </div>
             <div class="chatMessages">
                 <ul>
@@ -116,83 +118,8 @@
     {{else}}
         <p>Social login not configured yet.</p>
     {{/if}}
-    
-<!--     {{#if showRegister}}
-        {{> register}}
-    {{else}} 
-        {{#if showLogin}}
-            {{> login}}
-        {{else}}
-                <button class="register">Register</button>
-                <button class="login">Login</button>
-        {{/if}}
-    {{/if}}  -->
 </template>
 
 <template name="facebookLogin">
     <button class="fbLogin">Log in with Facebook!</button>
-</template>
-
-<template name="register">
-    <h2>Register</h2>
-
-    <form class="register">
-            <ul>
-                <li>
-                    <label>
-                        First Name: 
-                        <input type="text" name="firstName" required>
-                    </label>
-                </li>
-                <li>
-                    <label>
-                        Last Name: 
-                        <input type="text" name="lastName" required>
-                    </label>
-                </li>
-                <li>
-                    <label>
-                        Email: 
-                        <input type="email" name="email" required>
-                    </label>
-                </li>
-                <li>
-                    <label>
-                        Password: 
-                        <input type="password" name="password" required>
-                    </label>
-                </li>
-                <li>
-                    <input type="submit" value="Register">
-                </li>
-            </ul>   
-        </form>
-
-    <button class="back">Back</button>
-</template>
-
-<template name="login">
-    <h2>Login</h2>
-
-    <form class="login">
-            <ul>
-                <li>
-                    <label>
-                        Email: 
-                        <input type="email" name="email" required>
-                    </label>
-                </li>
-                <li>
-                    <label>
-                        Password: 
-                        <input type="password" name="password" required>
-                    </label>
-                </li>
-                <li>
-                    <input type="submit" value="Login">
-                </li>
-            </ul>   
-        </form>
-
-    <button class="back">Back</button>
 </template>
