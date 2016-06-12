@@ -11,6 +11,8 @@ Router.route("/", {
     template: "home"
 });
 
+// Go through code and find places where Meteor.user() is more appropriate
+
 if (Meteor.isClient) {
     // Probably should move this line somewhere else so that when the user
     // refreshes the page, who they're talking to is remembered.
@@ -35,8 +37,13 @@ if (Meteor.isClient) {
 
     Template.app.helpers({
         "user": function() {
-            var currentUser = Meteor.userId();
-            return Meteor.users.findOne({_id: currentUser});
+            return Meteor.user();
+        }, "getProfilePicture": function(id) {
+            var user = Meteor.users.findOne({_id: id});
+            // So THIS is how you check what social service is being used!!!!!!!!!!!!!!!!!!!!!!!!
+            if (user.services.facebook) {
+                return "https://graph.facebook.com/" + user.services.facebook.id + "/picture/?height=100&width=100";
+            }
         }
     });
 
@@ -66,6 +73,12 @@ if (Meteor.isClient) {
             });
 
             return friendsToAdd;
+        }, "getProfilePicture": function(id) {
+            var user = Meteor.users.findOne({_id: id});
+            // So THIS is how you check what social service is being used!!!!!!!!!!!!!!!!!!!!!!!!
+            if (user.services.facebook) {
+                return "https://graph.facebook.com/" + user.services.facebook.id + "/picture/?height=100&width=100";
+            }
         }
     });
 

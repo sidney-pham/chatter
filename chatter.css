@@ -14,3 +14,7 @@ input.error {
 body {
     font-family: "Roboto";
 }
+
+.profilePicture {
+    border-radius: 50%;
+}

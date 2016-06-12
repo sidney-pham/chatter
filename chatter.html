@@ -22,6 +22,7 @@
     <a href="#" class="logout">Logout</a>
 
     <ul>
+        <img src="{{getProfilePicture user._id}}" alt="{{user.profile.name}}" class="profilePicture">
         <li>Name: {{user.profile.name}}</li> <!-- This is relies on profile property existing -->
         <li>Email: {{user.services.facebook.email}}</li>
         <li>Gender: {{user.services.facebook.gender}}</li>
@@ -37,6 +38,7 @@
         <h2>Here are some friends to add:</h2>
         <ul>
             {{#each friendsToAdd}}
+                <img src="{{getProfilePicture _id}}" alt="{{profile.name}}" class="profilePicture">
                 <li>
                     <label>
                         <input type="checkbox" class="addFriendCheckbox">
