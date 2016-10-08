@@ -20,4 +20,6 @@ git clone https://github.com/sidney-pham/chatter
 ```
 
 - `cd` (probably) into the folder.
+- [Create your own Facebook application](https://developers.facebook.com/apps/).
+- Put your App ID and App Secret into a (non-hidden) file, following the template in .socialConfigTemplate.js.
 - Run `meteor`. That should work!

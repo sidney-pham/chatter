@@ -282,16 +282,6 @@ if (Meteor.isClient) {
 if (Meteor.isServer) {
     console.log("CHATTER IS RUNNING!");
 
-    ServiceConfiguration.configurations.remove({
-        service: 'facebook'
-    });
-
-    ServiceConfiguration.configurations.insert({
-        service: 'facebook',
-        appId: '240711099642226',
-        secret: '925d26e66a5289345132df1a14d97dcc'
-    });
-
     Accounts.onCreateUser(function(options, user) {
         console.log("New user!");
         user.profile = {
