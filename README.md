@@ -8,7 +8,7 @@ It is insecure at the moment, so don't actually use it for messaging, but there'
 
 ## Installation
 - [Install Meteor](https://www.meteor.com/install).
-Or, if you have OSX/Linux, just do:
+Or, if you have Mac OS/Linux, just do:
 
 ```
 curl https://install.meteor.com/ | sh
