@@ -1,3 +1,7 @@
+# NOTE: 
+If you aren't interested in the version of my code as of the deadline for the actual Something Awesome, please refer to the socialLogin branch.
+
+---
 # chatter
 Truly something awesome.
 **chatter** is a messaging web-app where you can add friends and send them private messages!
