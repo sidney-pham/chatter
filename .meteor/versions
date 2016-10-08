@@ -4,6 +4,7 @@ accounts-oauth@1.1.12
 accounts-password@1.1.8
 accounts-ui@1.1.9
 accounts-ui-unstyled@1.1.12
+aldeed:template-extension@4.0.0
 allow-deny@1.0.4
 autopublish@1.0.7
 autoupdate@1.2.9
