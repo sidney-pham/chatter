@@ -3,7 +3,6 @@ Truly something awesome.
 **chatter** is a messaging web-app where you can add friends and send them private messages!
 
 ## Warning
----
 It is insecure at the moment, so don't actually use it for messaging, but there's good code at least, yay! Will be fixed soon!
 
 ## Installation
