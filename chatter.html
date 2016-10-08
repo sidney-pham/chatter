@@ -4,83 +4,108 @@
 
 <template name="main">
     {{> yield}}
-    <hr>
-    <p>Sidney Pham</p>
+    <footer>
+        <hr>
+        <p>Sidney Pham</p>
+    </footer>
 </template>
 
 <template name="home">
     {{#if currentUser}}
-        {{> app}}    
+        {{> app}}
     {{else}}
         {{> notLoggedIn}}
     {{/if}}
-
 </template>
 
 <template name="app">
-    <h1>LOGGED IN YO!</h1>
-    <a href="#" class="logout">Logout</a>
+    <header>
+        <h1>Welcome to Chatter!</h1>
+        <!-- <h1>LOGGED IN YO!</h1> -->
+        <nav>
+            <a href="#" class="logout">Logout</a>
+        </nav>
+    </header>
 
-    <ul>
-        <img src="{{getProfilePicture user._id}}" alt="{{user.profile.name}}" class="profilePicture">
-        <li>Name: {{user.profile.name}}</li> <!-- This is relies on profile property existing -->
-        <li>Email: {{user.services.facebook.email}}</li>
-        <li>Gender: {{user.services.facebook.gender}}</li>
-    </ul>
+    <section class="profile">
+        <ul>
+            <li><img src="{{getProfilePicture user._id}}" alt="{{user.profile.name}}" class="profilePicture"></li>
+            <li>Name: {{user.profile.name}}</li> <!-- This is relies on profile property existing -->
+            <li>Email: {{user.services.facebook.email}}</li>
+            <li>Gender: {{user.services.facebook.gender}}</li>
+        </ul>
+    </section>
 
-    {{> addFriends}}
+    <section class="friends">
+        {{> friendsSidebar}}
+    </section>
 
-    {{> chatWindow}}
+    <section class="chatWindow">
+        {{> chatWindow}}
+    </section>
 </template>
 
-<template name="addFriends">
-    {{#if friendsToAdd}}
-        <h2>Here are some friends to add:</h2>
-        <ul>
-            {{#each friendsToAdd}}
-                <img src="{{getProfilePicture _id}}" alt="{{profile.name}}" class="profilePicture">
-                <li>
-                    <label>
-                        <input type="checkbox" class="addFriendCheckbox">
-                        {{profile.name}}
-                    </label>
-                </li>
-            {{/each}}
-        </ul>
+<template name="friendsSidebar">
+    {{> friendsList}}
+
+    {{#if findingFriends}}
+        {{> addFriends}}
+    {{else}}
+        <a href="#" class="addFriendsButton">Find new friends</a>
     {{/if}}
+</template>
+
+<!-- structure this shit inside sections/articles -->
+<template name="addFriends">
+    <section class="addFriends">
+        {{#if friendsToAdd}}
+            <h2>Here are some friends to add:</h2>
+            <ul>
+                {{#each friendsToAdd}}
+                    <li>
+                        <label>
+                            <img src="{{getProfilePicture _id}}" alt="{{profile.name}}" class="profilePicture">
+                            <input type="checkbox" class="addFriendCheckbox">
+                            {{profile.name}}
+                        </label>
+                    </li>
+                {{/each}}
+            </ul>
+        {{/if}}
+    </section>
+</template>
+
+<template name="friendsList">
+    <section class="friendsList">
+        <div class="friendsList">
+            {{#if friends}}
+                <h2>Here are your friends: </h2>
+                <ul>
+                    {{#each friends}}
+                        <li>
+                            <a href="#" class="friend {{selected}}">{{profile.name}}</a>
+                            <a href="#" class="removeFriend">[-]</a>
+                        </li>
+                    {{/each}}
+                </ul>
+            {{/if}}
+        </div>
+    </section>
 </template>
 
 <!-- Should break this down into sub-templates -->
 <template name="chatWindow">
-    <div class="friendsList">
-        {{#if friends}}
-            <h2>Here are your friends: </h2>
-            <ul>
-                {{#each friends}}
-                    <li>
-                        <a href="#" class="friend {{selected}}">{{profile.name}}</a>
-                        <a href="#" class="removeFriend">[-]</a>
-                    </li> 
-                {{/each}} 
-            </ul>
-        {{/if}}
-    </div>
     {{#if friends}}
         {{#if friendSelected}}
+            <!-- new sub-template here -->
             <div class="chatHeader">
                 <h2>{{chattingWith.profile.name}}</h2>
             </div>
-            <div class="chatMessages">
-                <ul>
-                    {{#each messages}}  
-                        <li>
-                            <h5>{{fromWhom from}} said:</h5>
-                            <h6 class="sentAt">at {{formatTime sentAt}}</h6>
-                            <p>{{text}}</p>
-                        </li>
-                    {{/each}}
-                </ul>
-            </div>
+
+            <section class="chatMessages">
+                {{> chat}}
+            </section>
+
             <div class="chatBottom">
                 <input type="text" placeholder="Type a message:" name="message">
             </div>
@@ -88,33 +113,45 @@
             <div class="chatHeader">
                 <h2>Select a friend to chat with!</h2>
             </div>
-            <div class="chatMessages">
+            <section class="chatMessages">
                 <h4>To start chatting, select a friend!</h4>
-            </div>
+            </section>
         {{/if}}
     {{else}}
         {{#if otherUsersExist}}
             <div class="chatHeader">
                 <h2>You need to add some friends first!</h2>
             </div>
-            <div class="chatMessages">
+            <section class="chatMessages">
                 <h4>To start chatting, add a friend!</h4>
-            </div>
+            </section>
         {{else}}
             <div class="chatHeader">
                 <h2>No users exist!</h2>
             </div>
-            <div class="chatMessages">
+            <section class="chatMessages">
                 <h4>Tell a friend about Chatter to chat with them!</h4>
-            </div>
+            </section>
         {{/if}}
     {{/if}}
+</template>
+
+<template name="chat">
+    <ul>
+        {{#each messages}}
+            <li>
+                <h5>{{fromWhom from}} said:</h5>
+                <h6 class="sentAt">at {{formatTime sentAt}}</h6>
+                <p>{{text}}</p>
+            </li>
+        {{/each}}
+    </ul>
 </template>
 
 <template name="notLoggedIn">
     <h1>Chatter!</h1>
     <p>Chat with all your friends!</p>
-    
+
     {{#if socialLoginConfigured}}
         {{> facebookLogin}}
     {{else}}

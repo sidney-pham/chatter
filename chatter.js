@@ -17,6 +17,7 @@ if (Meteor.isClient) {
     // Probably should move this line somewhere else so that when the user
     // refreshes the page, who they're talking to is remembered.
     Session.set("chattingWith", "none");
+    Session.set("findingFriends", false);
 
     Template.notLoggedIn.helpers({
         "socialLoginConfigured": function() {
@@ -36,65 +37,6 @@ if (Meteor.isClient) {
     });
 
     Template.app.helpers({
-        "user": function() {
-            return Meteor.user();
-        }, "getProfilePicture": function(id) {
-            var user = Meteor.users.findOne({_id: id});
-            // So THIS is how you check what social service is being used!!!!!!!!!!!!!!!!!!!!!!!!
-            if (user.services.facebook) {
-                return "https://graph.facebook.com/" + user.services.facebook.id + "/picture/?height=100&width=100";
-            }
-        }
-    });
-
-    Template.app.events({
-        "click .logout": function(event) {
-            event.preventDefault();
-            Meteor.logout();
-            Session.set("chattingWith", "none");
-        }
-    });
-
-    Template.addFriends.helpers({
-        "friendsToAdd": function() {
-            var friendsToAdd = [];
-
-            var allUsers = Meteor.users.find().fetch();
-            var currentUser = Meteor.userId();
-            var friendsList = Meteor.users.findOne({_id: currentUser}).profile.friends;
-
-            allUsers.forEach(function(user) {
-                var otherPlayerId = user._id;
-                var isFriend = friendsList.indexOf(otherPlayerId) != -1;
-
-                if (!isFriend && otherPlayerId != currentUser) {
-                    friendsToAdd.push(user);
-                }
-            });
-
-            return friendsToAdd;
-        }, "getProfilePicture": function(id) {
-            var user = Meteor.users.findOne({_id: id});
-            // So THIS is how you check what social service is being used!!!!!!!!!!!!!!!!!!!!!!!!
-            if (user.services.facebook) {
-                return "https://graph.facebook.com/" + user.services.facebook.id + "/picture/?height=100&width=100";
-            }
-        }
-    });
-
-    // When you add a friend, you have to update your new friend's
-    // friend list so that you are their friend as well. This requires
-    // more privileges, so you need to run this from a method.
-    Template.addFriends.events({
-        "change .addFriendCheckbox": function() {
-            var currentUser = Meteor.userId();
-            var newFriendId = this._id;
-
-            Meteor.call("addFriend", currentUser, newFriendId);
-        }
-    });
-
-    Template.chatWindow.helpers({
         // We can't just return friendsList since friendsList contains
         // the IDs of each friend and not the entire user object.
         "friends": function() {
@@ -113,7 +55,106 @@ if (Meteor.isClient) {
             });
 
             return friends;
-        }, "otherUsersExist": function() {
+        }, "user": function() {
+            return Meteor.user();
+        }, "getProfilePicture": function(id) {
+            var user = Meteor.users.findOne({_id: id});
+            // So THIS is how you check what social service is being used!!!!!!!!!!!!!!!!!!!!!!!!
+            if (user.services.facebook) {
+                return "https://graph.facebook.com/" + user.services.facebook.id + "/picture/?height=100&width=100";
+            }
+        }
+    });
+
+    Template.app.events({
+        "click .logout": function(event) {
+            event.preventDefault();
+            Meteor.logout();
+            Session.set("chattingWith", "none");
+        }
+    });
+
+    Template.friendsSidebar.helpers({
+        "findingFriends": function() {
+            return Session.get("findingFriends");
+        }
+    });
+
+    Template.friendsSidebar.events({
+        "click .addFriendsButton": function(event) {
+            event.preventDefault();
+
+            Session.set("findingFriends", true);
+        }
+    });
+
+    // app template holds global-ish helpers like "getProfilePicture"
+    Template.addFriends.inheritsHelpersFrom("app");
+    Template.addFriends.helpers({
+        "friendsToAdd": function() {
+            var friendsToAdd = [];
+
+            var allUsers = Meteor.users.find().fetch();
+            var currentUser = Meteor.userId();
+            var friendsList = Meteor.users.findOne({_id: currentUser}).profile.friends;
+
+            allUsers.forEach(function(user) {
+                var otherPlayerId = user._id;
+                var isFriend = friendsList.indexOf(otherPlayerId) != -1;
+
+                if (!isFriend && otherPlayerId != currentUser) {
+                    friendsToAdd.push(user);
+                }
+            });
+
+            return friendsToAdd;
+        }
+    });
+
+    Template.addFriends.events({
+        // When you add a friend, you have to update your new friend's
+        // friend list so that you are their friend as well. This requires
+        // more privileges, so you need to run this from a method.
+        "change .addFriendCheckbox": function() {
+            var currentUser = Meteor.userId();
+            var newFriendId = this._id;
+
+            Meteor.call("addFriend", currentUser, newFriendId);
+        }
+    });
+
+    // app template holds global-ish helpers like "friends"
+    Template.friendsList.inheritsHelpersFrom("app");
+    Template.friendsList.helpers({
+        "selected": function() {
+            var friendId = this._id;
+            var chattingWith = Session.get("chattingWith");
+
+            if (friendId == Session.get("chattingWith")) {
+                return "selected";
+            }
+        }
+    });
+
+    Template.friendsList.events({
+        "click .removeFriend": function(event) {
+            event.preventDefault();
+            var currentUser = Meteor.userId();
+            var friendId = this._id;
+
+            Meteor.call("removeFriend", currentUser, friendId);
+        }, "click .friendsList .friend": function(event) {
+            event.preventDefault();
+            var friendId = this._id;
+
+            Session.set("chattingWith", friendId);
+        }
+    });
+
+    // app template holds global-ish helpers like "friends"
+    Template.chatWindow.inheritsHelpersFrom("app");
+    Template.chatWindow.helpers({
+        "otherUsersExist": function() {
             var allUsers = Meteor.users.find().fetch();
             var otherUsers = allUsers.length > 1;
 
@@ -122,13 +163,6 @@ if (Meteor.isClient) {
             var chattingWith = Session.get("chattingWith");
 
             return chattingWith != "none";
-        }, "selected": function() {
-            var friendId = this._id;
-            var chattingWith = Session.get("chattingWith");
-
-            if (friendId == Session.get("chattingWith")) {
-                return "selected";
-            }
         }, "chattingWith": function() {
             var chattingWith = Session.get("chattingWith");
 
@@ -183,12 +217,12 @@ if (Meteor.isClient) {
                 if (from == BOT_ID) {
                     friendsName = BOT_NAME;
                 } else {
-                    friendsName = Meteor.users.findOne(from).profile.firstName;   
+                    friendsName = Meteor.users.findOne(from).profile.firstName;
                 }
                 return friendsName;
             }
         }, "formatTime": function(date) {
-            // Code from http://stackoverflow.com/questions/25275696/javascript-format-date-time 
+            // Code from http://stackoverflow.com/questions/25275696/javascript-format-date-time
             // to format time
 
             var hours = date.getHours();
@@ -217,18 +251,7 @@ if (Meteor.isClient) {
     });
 
     Template.chatWindow.events({
-        "click .removeFriend": function(event) {
-            event.preventDefault();
-            var currentUser = Meteor.userId();
-            var friendId = this._id;
-
-            Meteor.call("removeFriend", currentUser, friendId);
-        }, "click .friendsList .friend": function(event) {
-            event.preventDefault();
-            var friendId = this._id;
-
-            Session.set("chattingWith", friendId);
-        }, "keyup .chatBottom input[name='message']": function(event) {
+        "keyup .chatBottom input[name='message']": function(event) {
             if(event.which == 13){
                 var currentUser = Meteor.userId();
                 var chattingWith = Session.get("chattingWith");
@@ -241,18 +264,17 @@ if (Meteor.isClient) {
                 };
 
                 var chatExists = Chats.findOne({users: users});
-                
+
                 if (chatExists) {
                     // I DON'T THINK SORTING BY sentAt is necessary, since
                     // we're pushing onto the end of the messages array
-
                     Meteor.call("addMessage", users, message);
                 } else {
                     Meteor.call("createChatWithFirstMessage", users, message);
                 }
 
                 $(event.target).val("");
-            }            
+            }
         }
     });
 }
@@ -263,7 +285,7 @@ if (Meteor.isServer) {
     ServiceConfiguration.configurations.remove({
         service: 'facebook'
     });
-     
+
     ServiceConfiguration.configurations.insert({
         service: 'facebook',
         appId: '240711099642226',
@@ -276,7 +298,7 @@ if (Meteor.isServer) {
             friends: []
         };
 
-        // idk where options comes from, but this is what the example in 
+        // idk where options comes from, but this is what the example in
         // https://docs.meteor.com/api/accounts-multi.html#AccountsServer-onCreateUser
         // did, so i'm going to check if options.profile exists
         if (options.profile) {
@@ -322,7 +344,7 @@ Meteor.methods({
         var userProfile = Meteor.users.findOne({_id: currentUser}).profile;
         // Removes friend from userProfile.friends
         var indexToRemove = userProfile.friends.indexOf(friendId);
-        userProfile.friends.splice(indexToRemove, 1); 
+        userProfile.friends.splice(indexToRemove, 1);
 
         Meteor.users.update({_id: currentUser}, {$set: {profile: userProfile}});
 
@@ -330,7 +352,7 @@ Meteor.methods({
         var friendProfile = Meteor.users.findOne({_id: friendId}).profile;
         // Removes currentUser from friendProfile.friends
         indexToRemove = friendProfile.friends.indexOf(currentUser);
-        friendProfile.friends.splice(indexToRemove, 1); 
+        friendProfile.friends.splice(indexToRemove, 1);
 
         Meteor.users.update({_id: friendId}, {$set: {profile: friendProfile}});
     }, "createChatWithFirstMessage": function(between, message) {
@@ -341,7 +363,7 @@ Meteor.methods({
         });
     }, "addMessage": function(between, newMessage) {
         var newMessages = Chats.findOne({users: between}).messages;
-        newMessages.push(message);
+        newMessages.push(newMessage);
 
         Chats.update({users: between}, {
             $set: {

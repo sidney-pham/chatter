@@ -1,3 +1,5 @@
+* { box-sizing: border-box; }
+
 input.error {
     background-color: rgb(255, 231, 231);
 }
@@ -5,10 +7,6 @@ input.error {
 .friendsList .selected {
     color: rgb(91, 41, 113);
     font-family: sans-serif;
-}
-
-* {
-    box-sizing: border-box;
 }
 
 body {
